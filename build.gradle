@@ -1,0 +1,36 @@
+buildscript {
+	ext {
+		springBootVersion = '1.5.8.RELEASE'
+		newrelicVersion='3.5.1'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+configurations {
+	newrelic	// Custom configuration to allow for the copying of the New Relic agent at run time.
+}
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+}
+
+
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter-web')
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	compile ('com.ea.agentloader:ea-agent-loader:1.0.3')
+
+}
+
+
