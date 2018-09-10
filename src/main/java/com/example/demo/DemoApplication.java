@@ -3,6 +3,11 @@ package com.example.demo;
 import com.ea.agentloader.AgentLoader;
 import com.ea.agentloader.AgentLoaderHotSpot;
 import com.ea.agentloader.ClassPathUtils;
+import io.atomix.cluster.Node;
+import io.atomix.cluster.discovery.BootstrapDiscoveryProvider;
+import io.atomix.core.Atomix;
+import io.atomix.core.AtomixBuilder;
+import io.atomix.core.profile.Profile;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -22,26 +27,52 @@ import java.util.jar.JarFile;
 public class DemoApplication {
 
 	public static void main(String[] args) throws ClassNotFoundException, IOException {
+
+		AtomixBuilder builder = Atomix.builder();
+		builder.withMemberId("member1")
+			.withAddress("30.8.27.179")
+			.build();
+		builder.withMembershipProvider(BootstrapDiscoveryProvider.builder()
+			.withNodes(
+				Node.builder()
+					.withId("member1")
+					.withAddress("30.8.27.179")
+					.build(),
+				Node.builder()
+					.withId("member2")
+					.withAddress("10.192.19.182")
+					.build(),
+				Node.builder()
+					.withId("member3")
+					.withAddress("10.192.19.183")
+					.build())
+			.build());
+		builder.addProfile(Profile.dataGrid());
+		Atomix atomix = builder.build();
+
+		atomix.start().join();
+
+	}
+	public void startTest(){
 		//InputStream inputStream= HelloAgentWorld.class.getResourceAsStream(HelloAgentWorld.class.getSimpleName()+".class");
 		//String path="/Users/sdhjl2000/Projects/ea-agent-loader/agent-loader/target/";
 		//Files.copy(inputStream, Paths.get(path,"HelloAgentWorld.class"));
-  		//ExtClasspathLoader.loadClasspath(path);
+		//ExtClasspathLoader.loadClasspath(path);
 		if(HelloAgentWorld.class.getClassLoader() != ClassLoader.getSystemClassLoader()) {
-              ClassPathUtils.appendToSystemPath(ClassPathUtils.getClassPathFor(HelloAgentWorld.class));
-           }
+			ClassPathUtils.appendToSystemPath(ClassPathUtils.getClassPathFor(HelloAgentWorld.class));
+		}
 		AgentLoader.loadAgentClass(HelloAgentWorld.class.getName(), "Hello!");
-//		final File jarFile;
-//		try
-//		{
-//			jarFile = AgentLoader.createTemporaryAgentJar(HelloAgentWorld.class.getName(), null, true, true, false);
-//		}
-//		catch (IOException ex)
-//		{
-//			throw new RuntimeException("Can't write jar file for agent", ex);
-//		}
-//		ByteBuddyAgent.attach(jarFile, AgentLoaderHotSpot.getPid());
+		//		final File jarFile;
+		//		try
+		//		{
+		//			jarFile = AgentLoader.createTemporaryAgentJar(HelloAgentWorld.class.getName(), null, true, true, false);
+		//		}
+		//		catch (IOException ex)
+		//		{
+		//			throw new RuntimeException("Can't write jar file for agent", ex);
+		//		}
+		//		ByteBuddyAgent.attach(jarFile, AgentLoaderHotSpot.getPid());
 
-		SpringApplication.run(DemoApplication.class, args);
 	}
 	public static String findPathJar(Class<?> context) throws IllegalStateException {
 		if (context == null) return null;
